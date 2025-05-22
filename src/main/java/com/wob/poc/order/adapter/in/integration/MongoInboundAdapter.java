@@ -9,11 +9,9 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.Pollers;
-import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.mongodb.inbound.MongoDbMessageSource;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.util.List;
 
 @Slf4j
