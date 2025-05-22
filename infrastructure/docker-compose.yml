@@ -1,0 +1,46 @@
+services:
+  mongo1:
+    image: mongo:8.0.9
+    command: [ "--replSet", "rs0", "--bind_ip_all", "--port", "27017" ]
+    volumes:
+      - ./init-data/mongo:/docker-entrypoint-initdb.d
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]}) }" | mongosh --port 27017 --quiet
+      interval: 5s
+      timeout: 30s
+      start_period: 0s
+      start_interval: 1s
+      retries: 30
+
+  mongo-init:
+    image: mongo:8.0.9
+    restart: "no"
+    depends_on:
+      mongo1:
+        condition: service_healthy
+    command: >
+      mongosh --host mongo1:27017 --eval '
+      if (rs.status().ok === 0) {
+        rs.initiate({
+          _id: "rs0",
+          members: [{ _id: 0, host: "mongo1:27017" }]
+        })
+      };
+      while (rs.status().ok !== 1) { sleep(1000) };
+      while (!db.adminCommand("ping").ok) { sleep(1000) };
+      db = db.getSiblingDB("order");
+      if (!db.getCollection("order").findOne()) {
+        db.createCollection("order");
+        db.order.insertMany([
+          {
+             "orderId": "ORD123456",
+             "orderStatus": "NEW",
+             "lastModifiedAt": "2024-09-19T17:35:22.092Z",
+             "createdAt": "2024-09-19T17:35:22.092Z",
+             "version": 0,
+             "_class": "com.wob.poc.order.adapter.out.mongo.OrderDocument"
+          }
+        ]);
+      }'

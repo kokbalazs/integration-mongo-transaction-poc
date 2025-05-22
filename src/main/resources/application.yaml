@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: integration-mongo-transaction-poc
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: order
+logging:
+  level:
+    com.wob: DEBUG
